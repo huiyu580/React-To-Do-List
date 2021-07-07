@@ -1,15 +1,18 @@
 import React, { useState } from 'react'
-import { TiDelete } from 'react-icons/ti'
+
+import AddNewToDo from './addNewToDo'
+import ToDoItems from './ToDoItems'
 function TodoApp() {
   //todoItem={id: number, text:string, completet:bool}
   const [todos, setTodos] = useState([
     { id: 1, text: '買牛奶', completed: false, edited: false },
     { id: 2, text: '學react', completed: false, edited: false },
   ])
-  const [todoInput, setTodoInput] = useState('')
 
+  const [todoInput, setTodoInput] = useState('')
   const [editInput, setEditInput] = useState('')
 
+  // check功能
   const handleCheck = (todo) => {
     const newTodos = [...todos]
     const foundIndex = newTodos.findIndex((v, i) => {
@@ -20,6 +23,8 @@ function TodoApp() {
       setTodos(newTodos)
     }
   }
+
+  // 雙擊後更新todo內容
   const handleUpdate = (todos, todo) => {
     // 複製陣列
     let newTodos = [...todos]
@@ -30,23 +35,28 @@ function TodoApp() {
     // 更改內容文字
     newTodos[foundIndex].text = editInput
     setTodos(newTodos)
-    // 送出後變更樣式
+    // 送出後關閉input樣式
     newTodos[foundIndex].edited = false
   }
 
   // 切換編輯樣式
   const toggleEditState = (todos, todo) => {
     let newTodos = [...todos]
+    // 找出todos陣列中id相同的索引值
     let foundIndex = newTodos.findIndex((v, i) => {
       return v.id === todo.id
     })
+    // 將該項目啟用編輯
     newTodos[foundIndex].edited = true
+    // 關閉其他項目的編輯功能，回傳新陣列
     newTodos = newTodos.map((v, i) => {
       if (i !== foundIndex) {
         v.edited = false
       }
       return v
     })
+
+    // 更新setTodos
     setTodos(newTodos)
   }
 
@@ -54,84 +64,26 @@ function TodoApp() {
     <div className="container p-4 d-flex flex-column align-items-center">
       <div className="card p-3" style={{ width: '30vw' }}>
         <h1 className="text-center p-3">TO DO LIST</h1>
-        <input
-          className="input-group input-group-lg p-1"
-          type="text"
-          value={todoInput}
-          onChange={(e) => {
-            setTodoInput(e.target.value)
-          }}
-          // 抓enter事件
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              //  建立新的todo物件
-              const newTodoItem = {
-                id: +new Date(),
-                text: e.target.value,
-                completed: false,
-                edited: false,
-              }
-              // 用展開運算子把目前輸入的加入todo陣列
-              const newTodos = [newTodoItem, ...todos]
-              setTodos(newTodos)
-              setTodoInput('')
-            }
-          }}
+        <AddNewToDo
+          todoInput={todoInput}
+          setTodoInput={setTodoInput}
+          setTodos={setTodos}
+          todos={todos}
         />
         <div>
           {todos.map((todo, i) => {
             return (
-              <div
-                className="w-100 d-flex py-3 align-items-center justify-content-between"
-                key={i}
-                onDoubleClick={() => {
-                  // 切換編輯模式
-                  toggleEditState(todos, todo)
-                  // 編輯時保留原本文字
-                  setEditInput(todo.text)
-                }}
-              >
-                <div>
-                  <input
-                    className="mr-3"
-                    type="checkbox"
-                    checked={todo.completed}
-                    onChange={() => {
-                      handleCheck(todo)
-                    }}
-                  />
-                  {todo.edited ? (
-                    <input
-                      style={{ fontSize: '16px' }}
-                      className="input"
-                      value={editInput}
-                      onChange={(e) => {
-                        setEditInput(e.target.value)
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleUpdate(todos, todo)
-                        }
-                      }}
-                    />
-                  ) : (
-                    <span style={{ fontSize: '16px' }}>
-                      {todo.completed ? <del>{todo.text}</del> : todo.text}
-                    </span>
-                  )}
-                </div>
-                {/* <span>{todo.completed ? <del>{todo.text}</del> : todo.text}</span> */}
-                <a
-                  onClick={() => {
-                    let newTodos = todos.filter((v, i) => {
-                      return todo.id !== v.id
-                    })
-                    setTodos(newTodos)
-                  }}
-                >
-                  <TiDelete size="30px"/>
-                </a>
-              </div>
+              <ToDoItems
+                key={todo.id}
+                todo={todo}
+                todos={todos}
+                handleCheck={handleCheck}
+                setEditInput={setEditInput}
+                handleUpdate={handleUpdate}
+                toggleEditState={toggleEditState}
+                editInput={editInput}
+                setTodos={setTodos}
+              />
             )
           })}
         </div>
